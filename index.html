@@ -42,19 +42,14 @@
             border-radius: 10px;
             cursor: pointer;
         }
-        canvas {
-            margin: 20px auto;
-            display: block;
-            background-color: #333;
-            border-radius: 50%;
-        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
 </head>
 <body>
     <h1>Speedometer Reaction Test</h1>
     <p>Press the "React" button as quickly as you notice the speed change.</p>
+    <canvas id="gauge" width="400" height="400" style="display: none;"></canvas>
     <div class="speed-display" id="speedDisplay">Speed: 0 km/h</div>
-    <canvas id="analogCanvas" width="200" height="200" style="display: none;"></canvas>
     <button class="reaction-button" id="reactionButton" disabled>React</button>
     <button class="start-button" id="startButton">Start Test</button>
     <button class="mode-button" id="modeButton">Switch to Digital</button>
@@ -68,52 +63,44 @@
         const results = [];
 
         const speedDisplay = document.getElementById("speedDisplay");
-        const analogCanvas = document.getElementById("analogCanvas");
-        const ctx = analogCanvas.getContext("2d");
+        const gaugeCanvas = document.getElementById("gauge");
         const startButton = document.getElementById("startButton");
         const reactionButton = document.getElementById("reactionButton");
         const modeButton = document.getElementById("modeButton");
         const resultsDiv = document.getElementById("results");
 
-        function drawAnalogSpeedometer(speed) {
-            ctx.clearRect(0, 0, 200, 200);
-
-            // Draw outer circle
-            ctx.beginPath();
-            ctx.arc(100, 100, 90, 0, Math.PI * 2);
-            ctx.fillStyle = "#555";
-            ctx.fill();
-
-            // Draw speed labels
-            ctx.fillStyle = "#fff";
-            ctx.font = "12px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            const labels = ["0", "40", "80", "120", "160", "200", "240"];
-            const angles = [-135, -90, -45, 0, 45, 90, 135];
-
-            labels.forEach((label, index) => {
-                const angle = (angles[index] * Math.PI) / 180;
-                const x = 100 + 80 * Math.cos(angle);
-                const y = 100 + 80 * Math.sin(angle);
-                ctx.fillText(label, x, y);
-            });
-
-            // Draw needle
-            const angle = ((speed / 240) * 270 - 135) * (Math.PI / 180);
-            ctx.beginPath();
-            ctx.moveTo(100, 100);
-            ctx.lineTo(100 + 70 * Math.cos(angle), 100 + 70 * Math.sin(angle));
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Draw center dot
-            ctx.beginPath();
-            ctx.arc(100, 100, 5, 0, Math.PI * 2);
-            ctx.fillStyle = "red";
-            ctx.fill();
-        }
+        // Initialize Gauge.js
+        const gauge = new Gauge(gaugeCanvas).setOptions({
+            angle: 0.2, // The span of the gauge arc
+            lineWidth: 0.3, // Arc thickness
+            radiusScale: 1, // Relative radius
+            pointer: {
+                length: 0.6, // Relative to gauge radius
+                strokeWidth: 0.035, // Thickness
+                color: '#FF0000', // Pointer color
+            },
+            staticLabels: {
+                font: "12px Arial",
+                labels: [0, 40, 80, 120, 160, 200, 240],
+                fractionDigits: 0,
+            },
+            staticZones: [
+                { strokeStyle: "#30B32D", min: 0, max: 80 },
+                { strokeStyle: "#FFDD00", min: 80, max: 160 },
+                { strokeStyle: "#F03E3E", min: 160, max: 240 },
+            ],
+            limitMax: false,     // If false, max value increases automatically if value > maxValue
+            limitMin: false,     // If true, the min value of the gauge will be fixed
+            colorStart: '#6FADCF',   // Colors
+            colorStop: '#8FC0DA',    // just experiment with them
+            strokeColor: '#E0E0E0',  // to see which ones work best for you
+            generateGradient: true,
+            highDpiSupport: true,     // High resolution support
+        });
+        gauge.maxValue = 240; // Set max gauge value
+        gauge.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+        gauge.animationSpeed = 32; // set animation speed (32 is default)
+        gauge.set(0); // Set initial value
 
         function changeSpeed() {
             const randomChange = Math.random() > 0.5 ? 10 : -10; // Small incremental change
@@ -130,10 +117,10 @@
         function updateSpeedDisplay() {
             if (isAnalogMode) {
                 speedDisplay.style.display = "none";
-                analogCanvas.style.display = "block";
-                drawAnalogSpeedometer(currentSpeed);
+                gaugeCanvas.style.display = "block";
+                gauge.set(currentSpeed);
             } else {
-                analogCanvas.style.display = "none";
+                gaugeCanvas.style.display = "none";
                 speedDisplay.style.display = "block";
                 speedDisplay.textContent = `Digital Mode: ${currentSpeed} km/h`;
             }
