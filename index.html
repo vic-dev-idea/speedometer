@@ -1,207 +1,185 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speedometer Reaction Test</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-            background-color: #000;
-            color: #fff;
-        }
-        .reaction-button, .start-button, .mode-button, .download-button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-top: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            border: none;
-        }
-        .start-button {
-            background-color: #00ffff;
-            color: #000;
-        }
-        .mode-button {
-            background-color: #007bff;
-            color: #fff;
-        }
-        .download-button {
-            background-color: #28a745;
-            color: #fff;
-        }
-        .reaction-button {
-            background-color: #dc3545; /* Red */
-            color: white;
-        }
-        .reaction-button:disabled {
-            background-color: #6c757d; /* Grayed out red */
-            cursor: default;
-        }
-        .speed-display {
-            font-size: 24px;
-            margin: 20px 0;
-        }
-        #gauge {
-            margin: 20px auto;
-            display: block;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
+<title>Speedometer Reaction Test</title>
+<style>
+body {
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #222; /* Dark background */
+    color: #eee;
+    margin: 20px;
+}
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 600px;
+    margin: 0 auto;
+}
+#speedometer {
+    width: 300px;
+    height: 300px;
+    margin-bottom: 20px;
+}
+.button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.startButton { background-color: #4CAF50; color: white; }
+.modeButton { background-color: #2196F3; color: white; }
+.downloadButton { background-color: #00BCD4; color: white; }
+.result { margin-top: 20px; font-weight: bold; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
 </head>
 <body>
+<div id="container">
     <h1>Speedometer Reaction Test</h1>
-    <p>Press the "React" button as quickly as you notice the speed change.</p>
-    <canvas id="gauge" width="400" height="400"></canvas>
-    <div class="speed-display" id="speedDisplay" style="display: none;">Speed: 0 km/h</div>
-    <button class="reaction-button" id="reactionButton" disabled>React</button>
-    <button class="start-button" id="startButton">Start Test</button>
-    <button class="mode-button" id="modeButton">Switch to Digital</button>
-    <button class="download-button" id="downloadButton" disabled>Download Log</button>
+    <div id="speedometer"></div>
+    <div id="speedDisplay">Speed: 0 km/h</div>
+    <button class="button startButton" id="startButton">Start Test</button>
+    <button class="button modeButton" id="modeButton">Switch to Digital</button>
+    <button class="button downloadButton" id="downloadButton" disabled>Download Log</button>
     <div id="results"></div>
+</div>
 
-    <script>
-        let currentSpeed = 0;
-        let testRunning = false;
-        let startTime, reactionTime;
-        let isAnalogMode = true;
-        const results = [];
-        const logData = [];
+<script>
+    const speedometerContainer = document.getElementById('speedometer');
+    const speedDisplay = document.getElementById('speedDisplay');
+    const startButton = document.getElementById('startButton');
+    const modeButton = document.getElementById('modeButton');
+    const downloadButton = document.getElementById('downloadButton');
+    const resultsDiv = document.getElementById('results');
+    let isAnalogMode = true;
+    let currentSpeed = 0;
+    let startTime, reactionTime;
+    let testRunning = false;
+    let trials = 0;
+    const resultsData = [];
 
-        const speedDisplay = document.getElementById("speedDisplay");
-        const gaugeCanvas = document.getElementById("gauge");
-        const startButton = document.getElementById("startButton");
-        const reactionButton = document.getElementById("reactionButton");
-        const modeButton = document.getElementById("modeButton");
-        const downloadButton = document.getElementById("downloadButton");
-        const resultsDiv = document.getElementById("results");
 
-        const gauge = new Gauge(gaugeCanvas).setOptions({
-            angle: 0.75,
-            lineWidth: 0.2,
-            radiusScale: 1,
-            pointer: {
-                length: 0.7,
-                strokeWidth: 0.04,
-                color: '#FF0000',
-            },
-            staticLabels: {
-                font: "14px Arial",
-                labels: [0, 40, 80, 120, 160, 200, 240],
-                fractionDigits: 0,
-            },
-            staticZones: [
-                { strokeStyle: "#30B32D", min: 0, max: 80 },
-                { strokeStyle: "#FFDD00", min: 80, max: 160 },
-                { strokeStyle: "#F03E3E", min: 160, max: 240 },
-            ],
-            limitMax: false,
-            limitMin: false,
-            colorStart: '#6FADCF',
-            colorStop: '#8FC0DA',
-            strokeColor: '#E0E0E0',
-            generateGradient: true,
-            highDpiSupport: true,
-        });
-        gauge.maxValue = 240;
-        gauge.setMinValue(0);
-        gauge.animationSpeed = 50;
-        gauge.set(0);
+    // Initialize Gauge.js (Analog Speedometer)
+    const gauge = new Gauge(speedometerContainer).setOptions({
+        angle: 0.75,
+        lineWidth: 0.2,
+        radiusScale: 1,
+        pointer: { length: 0.7, strokeWidth: 0.04, color: '#FF0000' },
+        staticLabels: { font: "14px Arial", labels: [0, 40, 80, 120, 160, 200, 240], fractionDigits: 0 },
+        staticZones: [
+            { strokeStyle: "#30B32D", min: 0, max: 80 },
+            { strokeStyle: "#FFDD00", min: 80, max: 160 },
+            { strokeStyle: "#F03E3E", min: 160, max: 240 }
+        ],
+        limitMax: false,
+        limitMin: false,
+        colorStart: '#6FADCF',
+        colorStop: '#8FC0DA',
+        strokeColor: '#E0E0E0',
+        generateGradient: true,
+        highDpiSupport: true
+    });
+    gauge.maxValue = 240;
+    gauge.setMinValue(0);
+    gauge.animationSpeed = 50;
+    gauge.set(0);
 
-        function changeSpeed() {
-            const newSpeed = Math.floor(Math.random() * 61) + 20; // Random speed 20-80
-            currentSpeed = newSpeed;
-            updateSpeedDisplay();
-            startTime = performance.now();
-        }
-
-        function updateSpeedDisplay() {
-            if (isAnalogMode) {
-                speedDisplay.style.display = "none";
-                gaugeCanvas.style.display = "block";
-                gauge.set(currentSpeed);
-            } else {
-                gaugeCanvas.style.display = "none";
-                speedDisplay.style.display = "block";
-                speedDisplay.textContent = `Digital Mode: ${currentSpeed} km/h`;
-            }
-        }
-
-        function startTest() {
-            resultsDiv.innerHTML = "";
-            results.length = 0;
-            testRunning = true;
-            reactionButton.disabled = false;
-            modeButton.disabled = true; //Disable mode switch during test
-            let trial = 0;
-
-            function nextTrial() {
-                if (trial >= 5) {
-                    endTest();
-                    return;
-                }
-
-                isAnalogMode = Math.random() < 0.5; // Randomly choose analog or digital
-                updateSpeedDisplay();
-                setTimeout(() => {
-                    changeSpeed();
-                    trial++;
-                    reactionButton.addEventListener("click", recordReaction, { once: true });
-                }, Math.random() * 2000 + 1000);
-            }
-
-            function recordReaction() {
-                if (!testRunning) return;
-                reactionTime = (performance.now() - startTime) / 1000; // Seconds
-                results.push(reactionTime);
-                logData.push(`Trial ${trial}, Mode: ${isAnalogMode ? 'Analog' : 'Digital'}, Reaction Time: ${reactionTime.toFixed(3)} s`);
-                resultsDiv.innerHTML += `Trial ${trial}: ${reactionTime.toFixed(3)} s<br>`;
-                nextTrial();
-            }
-
-            nextTrial();
-        }
-
-        function endTest() {
-            testRunning = false;
-            reactionButton.disabled = true;
-            modeButton.disabled = false; // Re-enable mode switch after test
-            const average = results.reduce((sum, val) => sum + val, 0) / results.length;
-            resultsDiv.innerHTML += `
-                <p>Test Complete!</p>
-                <p>Average Reaction Time: ${average.toFixed(2)} s</p>
-                <p>All Results: ${results.map(r => r.toFixed(2)).join(", ")} s</p>
-            `;
-            logData.push(`Test Complete. Average Reaction Time: ${average.toFixed(2)} s`);
-            startButton.disabled = false;
-            downloadButton.disabled = false;
-        }
-
-        modeButton.addEventListener("click", () => {
-            isAnalogMode = !isAnalogMode;
-            modeButton.textContent = isAnalogMode ? "Switch to Digital" : "Switch to Analog";
-            updateSpeedDisplay();
-        });
-
-        startButton.addEventListener("click", () => {
-            startButton.disabled = true;
-            downloadButton.disabled = true;
-            startTest();
-        });
-
-        downloadButton.addEventListener("click", () => {
-            const blob = new Blob([logData.join("\n")], { type: "text/plain" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "reaction_test_log.txt";
-            a.click();
-            URL.revokeObjectURL(url);
-        });
-
+    function changeSpeed() {
+        const newSpeed = Math.floor(Math.random() * 61) + 20; // 20-80 km/h
+        currentSpeed = newSpeed;
         updateSpeedDisplay();
-    </script>
+        startTime = performance.now();
+    }
+
+    function updateSpeedDisplay() {
+        if (isAnalogMode) {
+            speedDisplay.style.display = 'none';
+            gauge.set(currentSpeed);
+        } else {
+            speedDisplay.style.display = 'block';
+            speedDisplay.textContent = `Digital Mode: ${currentSpeed} km/h`;
+        }
+    }
+
+    function startTest() {
+        testRunning = true;
+        startButton.disabled = true;
+        modeButton.disabled = true;
+        resultsDiv.innerHTML = '';
+        trials = 0;
+        resultsData.length = 0; // Clear previous data
+        nextTrial();
+    }
+
+    function nextTrial() {
+        if (trials >= 5) {
+            endTest();
+            return;
+        }
+        isAnalogMode = Math.random() < 0.5; // Randomly switch between modes
+        updateSpeedDisplay();
+        setTimeout(changeSpeed, Math.random() * 2000 + 1000); // Random delay
+        trials++;
+    }
+
+    function recordReaction() {
+        reactionTime = (performance.now() - startTime) / 1000;
+        resultsData.push({
+            trial: trials,
+            mode: isAnalogMode ? 'Analog' : 'Digital',
+            reactionTime: reactionTime
+        });
+        resultsDiv.innerHTML += `Trial ${trials}: ${reactionTime.toFixed(3)} s<br>`;
+        nextTrial();
+    }
+
+    function endTest() {
+        testRunning = false;
+        startButton.disabled = false;
+        modeButton.disabled = false;
+        const average = resultsData.reduce((sum, trial) => sum + trial.reactionTime, 0) / resultsData.length;
+        resultsDiv.innerHTML += `<p>Average Reaction Time: ${average.toFixed(2)} s</p>`;
+        resultsDiv.innerHTML += `<p>All Results (Mode, Reaction Time):<br>${resultsData.map(t => `${t.mode}, ${t.reactionTime.toFixed(3)} s`).join('<br>')}</p>`;
+        downloadButton.disabled = false;
+
+    }
+
+    function downloadLog() {
+        const dataStr = "Trial,Mode,Reaction Time (s)\n" + resultsData.map(t => `${t.trial},${t.mode},${t.reactionTime}`).join('\n');
+        const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(dataStr);
+        const link = document.createElement('a');
+        link.href = dataUri;
+        link.download = 'reaction_test_log.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+
+    startButton.addEventListener('click', startTest);
+    modeButton.addEventListener('click', () => {
+        isAnalogMode = !isAnalogMode;
+        modeButton.textContent = isAnalogMode ? 'Switch to Digital' : 'Switch to Analog';
+        updateSpeedDisplay();
+    });
+    downloadButton.addEventListener('click', downloadLog);
+
+    // Event listener for reaction
+    document.addEventListener('keydown', function(event) {
+        if (testRunning && event.code === 'Enter') {
+            recordReaction();
+            document.removeEventListener('keydown', arguments.callee);
+        }
+    });
+
+</script>
 </body>
 </html>
