@@ -1,73 +1,187 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Reaction Time Test</title>
-<style>
-body {
-    font-family: sans-serif;
-    text-align: center;
-    margin: 50px;
-}
-#colorChanger {
-    width: 150px;
-    height: 150px;
-    background-color: blue;
-    margin: 20px auto;
-    border-radius: 10px;
-    cursor: pointer;
-}
-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    margin-top: 20px;
-    cursor: pointer;
-}
-#results {
-    font-size: 18px;
-    margin-top: 30px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speedometer Reaction Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        canvas {
+            display: block;
+            margin: 20px auto;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .start-button {
+            background-color: #007bff;
+            color: white;
+        }
+        .mode-button {
+            background-color: #28a745;
+            color: white;
+        }
+        .download-button {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .instructions {
+            margin: 20px 0;
+        }
+        .results {
+            margin: 20px 0;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
 </head>
 <body>
-<h1>Reaction Time Test</h1>
-<p>Click the square as quickly as you can after its color changes.</p>
-<div id="colorChanger"></div>
-<button id="startButton">Start Test</button>
-<div id="results"></div>
+    <h1>Speedometer Reaction Test</h1>
+    <p class="instructions">Press "Enter" as soon as you notice the speed change.</p>
+    <canvas id="gaugeCanvas" width="400" height="400" class="hidden"></canvas>
+    <div id="digitalDisplay" class="hidden" style="font-size: 48px;">Speed: 0 km/h</div>
+    <button id="startButton" class="start-button">Start Test</button>
+    <button id="modeButton" class="mode-button">Switch to Digital</button>
+    <button id="downloadButton" class="download-button" disabled>Download Log</button>
+    <div id="results" class="results"></div>
 
-<script>
-const colorChanger = document.getElementById('colorChanger');
-const startButton = document.getElementById('startButton');
-const resultsDiv = document.getElementById('results');
-let startTime;
-let reactionTimes = [];
+    <script>
+        const gaugeCanvas = document.getElementById('gaugeCanvas');
+        const digitalDisplay = document.getElementById('digitalDisplay');
+        const startButton = document.getElementById('startButton');
+        const modeButton = document.getElementById('modeButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const resultsDiv = document.getElementById('results');
 
-function changeColor() {
-    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
-    colorChanger.style.backgroundColor = randomColor;
-    startTime = performance.now();
-}
+        let gauge;
+        let isAnalogMode = true;
+        let testRunning = false;
+        let currentSpeed = 0;
+        let startTime;
+        const results = [];
 
-startButton.addEventListener('click', () => {
-    startButton.disabled = true; // Disable the button during the test
-    resultsDiv.textContent = ''; //Clear previous results
-    reactionTimes = []; //Clear previous reaction times
-    changeColor();
-});
+        function initializeGauge() {
+            gauge = new Gauge(gaugeCanvas).setOptions({
+                angle: 0.75,
+                lineWidth: 0.2,
+                radiusScale: 1,
+                pointer: {
+                    length: 0.7,
+                    strokeWidth: 0.04,
+                    color: "#FF0000"
+                },
+                staticLabels: {
+                    font: "14px Arial",
+                    labels: [0, 20, 40, 60, 80],
+                    fractionDigits: 0
+                },
+                staticZones: [
+                    { strokeStyle: "#30B32D", min: 0, max: 40 },
+                    { strokeStyle: "#FFDD00", min: 40, max: 60 },
+                    { strokeStyle: "#F03E3E", min: 60, max: 80 }
+                ],
+                highDpiSupport: true
+            });
+            gauge.maxValue = 80;
+            gauge.setMinValue(0);
+            gauge.set(0);
+        }
 
-colorChanger.addEventListener('click', () => {
-    const reactionTime = (performance.now() - startTime) / 1000;
-    reactionTimes.push(reactionTime);
-    resultsDiv.textContent += `Reaction Time ${reactionTimes.length}: ${reactionTime.toFixed(3)} seconds<br>`;
+        function updateSpeedDisplay(speed) {
+            if (isAnalogMode) {
+                digitalDisplay.classList.add('hidden');
+                gaugeCanvas.classList.remove('hidden');
+                gauge.set(speed);
+            } else {
+                gaugeCanvas.classList.add('hidden');
+                digitalDisplay.classList.remove('hidden');
+                digitalDisplay.textContent = `Speed: ${speed} km/h`;
+            }
+        }
 
-    if (reactionTimes.length < 5) {
-        changeColor();
-    } else {
-        const average = reactionTimes.reduce((sum, time) => sum + time, 0) / reactionTimes.length;
-        resultsDiv.innerHTML += `<p>Average Reaction Time: ${average.toFixed(3)} seconds</p>`;
-        startButton.disabled = false; //Re-enable button after 5 trials
-    }
-});
-</script>
+        function startTest() {
+            resultsDiv.innerHTML = "";
+            results.length = 0;
+            testRunning = true;
+            modeButton.disabled = true;
+            startButton.disabled = true;
+            downloadButton.disabled = true;
+            runTrial(1);
+        }
+
+        function runTrial(trialNumber) {
+            if (trialNumber > 5) {
+                endTest();
+                return;
+            }
+
+            setTimeout(() => {
+                currentSpeed = Math.floor(Math.random() * 61) + 20;
+                updateSpeedDisplay(currentSpeed);
+                startTime = performance.now();
+
+                const handleKeyPress = (event) => {
+                    if (event.key === 'Enter' && testRunning) {
+                        const reactionTime = (performance.now() - startTime) / 1000;
+                        results.push({
+                            trial: trialNumber,
+                            mode: isAnalogMode ? 'Analog' : 'Digital',
+                            reactionTime
+                        });
+                        resultsDiv.innerHTML += `<p>Trial ${trialNumber}: ${isAnalogMode ? 'Analog' : 'Digital'} - Reaction Time: ${reactionTime.toFixed(2)} s</p>`;
+                        document.removeEventListener('keydown', handleKeyPress);
+                        runTrial(trialNumber + 1);
+                    }
+                };
+
+                document.addEventListener('keydown', handleKeyPress);
+            }, Math.random() * 2000 + 1000);
+        }
+
+        function endTest() {
+            testRunning = false;
+            modeButton.disabled = false;
+            startButton.disabled = false;
+            const averageTime = results.reduce((sum, result) => sum + result.reactionTime, 0) / results.length;
+            resultsDiv.innerHTML += `<p>Average Reaction Time: ${averageTime.toFixed(2)} s</p>`;
+            downloadButton.disabled = false;
+        }
+
+        function downloadLog() {
+            const csvContent = ["Trial,Mode,Reaction Time (s)"]
+                .concat(results.map(result => `${result.trial},${result.mode},${result.reactionTime.toFixed(2)}`))
+                .join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'reaction_test_log.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        startButton.addEventListener('click', startTest);
+        modeButton.addEventListener('click', () => {
+            isAnalogMode = !isAnalogMode;
+            modeButton.textContent = isAnalogMode ? 'Switch to Digital' : 'Switch to Analog';
+        });
+        downloadButton.addEventListener('click', downloadLog);
+
+        initializeGauge();
+    </script>
 </body>
 </html>
