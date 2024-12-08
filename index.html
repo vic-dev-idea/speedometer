@@ -47,7 +47,7 @@
     <div id="results"></div>
 
     <script>
-        const speeds = [0, 40, 80, 120, 160, 200, 240, 280];
+        const speeds = [0, 40, 80, 120, 160, 200, 240];
         let isDigital = false; // Toggle between analog and digital speedometer
         let testRunning = false;
         let startTime, reactionTime;
@@ -61,7 +61,7 @@
 
         function updateNeedle(speed) {
             const needle = document.getElementById("needle");
-            const maxSpeed = 280; // Maximum speed on the speedometer
+            const maxSpeed = 240; // Maximum speed on the speedometer
             const angle = (speed / maxSpeed) * 270 - 225; // Adjusted for "0" at bottom-left
             const rad = (angle * Math.PI) / 180; // Convert angle to radians
             const x = 100 + 70 * Math.cos(rad); // Calculate x position for needle
@@ -84,7 +84,6 @@
                         <text x="150" y="70" font-size="12" fill="white" text-anchor="middle">160</text>
                         <text x="175" y="120" font-size="12" fill="white" text-anchor="middle">200</text>
                         <text x="150" y="180" font-size="12" fill="white" text-anchor="middle">240</text>
-                        <text x="100" y="200" font-size="12" fill="white" text-anchor="middle">280</text>
 
                         <!-- Needle -->
                         <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="red" stroke-width="2"></line>
