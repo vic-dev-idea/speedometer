@@ -72,8 +72,8 @@
     <div id="results"></div>
 
     <script>
-        const speeds = [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200];
-        let isDigital = false; // Toggle between old-style and modern digital speedometer
+        const speeds = [0, 40, 80, 120, 160, 200, 240, 280, 320];
+        let isDigital = false; // Toggle between analog and digital speedometer
         let testRunning = false;
         let startTime, reactionTime;
         const results = [];
@@ -87,7 +87,7 @@
         // Function to update the needle for the analog speedometer
         function updateNeedle(speed) {
             const needle = document.getElementById("needle");
-            const maxSpeed = 200; // Maximum speed on the speedometer
+            const maxSpeed = 320; // Maximum speed on the speedometer
             const angle = (speed / maxSpeed) * 270 - 135; // Map speed to needle angle (-135° to 135°)
             const rad = (angle * Math.PI) / 180; // Convert angle to radians
             const x = 100 + 70 * Math.cos(rad); // Calculate x position for needle
@@ -96,26 +96,29 @@
             needle.setAttribute("y2", y);
         }
 
-        // Function to display speedometer
+        // Function to display the speedometer
         function displaySpeed(speed) {
             if (!isDigital) {
-                // Old-style analog speedometer
+                // Analog speedometer
                 speedometerDiv.innerHTML = `
                     <svg width="300" height="300" viewBox="0 0 200 200">
                         <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="4"></circle>
-                        <text x="95" y="20" font-size="12" fill="white" text-anchor="middle">0</text>
-                        <text x="160" y="40" font-size="12" fill="white" text-anchor="middle">40</text>
-                        <text x="190" y="100" font-size="12" fill="white" text-anchor="middle">80</text>
-                        <text x="160" y="160" font-size="12" fill="white" text-anchor="middle">120</text>
-                        <text x="100" y="190" font-size="12" fill="white" text-anchor="middle">160</text>
-                        <text x="40" y="160" font-size="12" fill="white" text-anchor="middle">200</text>
+                        <text x="100" y="195" font-size="12" fill="white" text-anchor="middle">0</text>
+                        <text x="155" y="175" font-size="12" fill="white" text-anchor="middle">40</text>
+                        <text x="190" y="130" font-size="12" fill="white" text-anchor="middle">80</text>
+                        <text x="175" y="70" font-size="12" fill="white" text-anchor="middle">120</text>
+                        <text x="130" y="30" font-size="12" fill="white" text-anchor="middle">160</text>
+                        <text x="70" y="30" font-size="12" fill="white" text-anchor="middle">200</text>
+                        <text x="25" y="70" font-size="12" fill="white" text-anchor="middle">240</text>
+                        <text x="10" y="130" font-size="12" fill="white" text-anchor="middle">280</text>
+                        <text x="45" y="175" font-size="12" fill="white" text-anchor="middle">320</text>
                         <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="red" stroke-width="2"></line>
                         <circle cx="100" cy="100" r="5" fill="red"></circle>
                     </svg>
                 `;
                 updateNeedle(speed);
             } else {
-                // Modern digital speedometer
+                // Digital speedometer
                 speedometerDiv.innerHTML = `
                     <div class="digital">
                         <div class="speed">${speed}</div>
@@ -132,7 +135,7 @@
             startTime = performance.now();
         }
 
-        // Start test
+        // Start the test
         function startTest() {
             resultsDiv.innerHTML = "";
             results.length = 0;
@@ -164,7 +167,7 @@
             nextTrial();
         }
 
-        // End test
+        // End the test
         function endTest() {
             testRunning = false;
             reactionButton.disabled = true;
