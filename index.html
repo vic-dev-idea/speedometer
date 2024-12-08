@@ -12,140 +12,80 @@
             background-color: #000;
             color: #fff;
         }
-        .speedometer {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 300px;
-            margin-top: 50px;
-        }
-        .digital {
-            font-size: 48px;
-            font-weight: bold;
-            background-color: #1c1c1c;
-            border: 2px solid #00ffff;
-            border-radius: 15px;
-            width: 250px;
-            height: 150px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .digital .speed {
-            font-size: 60px;
-            color: #00ffff;
-        }
-        .digital .unit {
-            font-size: 20px;
-            color: #ffffff;
-        }
         .reaction-button {
             padding: 10px 20px;
             font-size: 16px;
             margin-top: 20px;
             cursor: pointer;
         }
-        .toggle-button {
-            margin: 20px;
+        .start-button {
             padding: 10px 20px;
             font-size: 16px;
-            cursor: pointer;
-            border: none;
+            margin-top: 20px;
             background-color: #00ffff;
             color: #000;
+            border: none;
             border-radius: 10px;
+            cursor: pointer;
+        }
+        .speed-display {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .mode-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <h1>Speedometer Reaction Test</h1>
     <p>Press the "React" button as quickly as you notice the speed change.</p>
-    <div class="speedometer" id="speedometer"></div>
+    <div class="speed-display" id="speedDisplay">Speed: 0 km/h</div>
     <button class="reaction-button" id="reactionButton" disabled>React</button>
-    <button class="reaction-button" id="startButton">Start Test</button>
-    <button class="toggle-button" id="toggleButton">Switch to Digital</button>
+    <button class="start-button" id="startButton">Start Test</button>
+    <button class="mode-button" id="modeButton">Switch to Digital</button>
     <div id="results"></div>
 
     <script>
-        let currentSpeed = 0; // Track the current speed
-        let isDigital = false; // Toggle between analog and digital speedometer
+        let currentSpeed = 0;
         let testRunning = false;
         let startTime, reactionTime;
+        let isAnalogMode = true; // Track the current mode
         const results = [];
 
-        const speedometerDiv = document.getElementById("speedometer");
+        const speedDisplay = document.getElementById("speedDisplay");
         const startButton = document.getElementById("startButton");
         const reactionButton = document.getElementById("reactionButton");
-        const toggleButton = document.getElementById("toggleButton");
+        const modeButton = document.getElementById("modeButton");
         const resultsDiv = document.getElementById("results");
 
-        function updateNeedle(speed) {
-            const needle = document.getElementById("needle");
-            const maxSpeed = 240; // Maximum speed on the speedometer
-            const angle = (speed / maxSpeed) * 270 - 225; // Adjusted for "0" at bottom-left
-            const rad = (angle * Math.PI) / 180; // Convert angle to radians
-            const x = 100 + 70 * Math.cos(rad); // Calculate x position for needle
-            const y = 100 + 70 * Math.sin(rad); // Calculate y position for needle
-            needle.setAttribute("x2", x);
-            needle.setAttribute("y2", y);
-        }
-
-        function displaySpeed(speed) {
-            if (!isDigital) {
-                speedometerDiv.innerHTML = `
-                    <svg width="300" height="300" viewBox="0 0 200 200">
-                        <circle cx="100" cy="100" r="85" fill="none" stroke="white" stroke-width="3"></circle>
-
-                        <!-- Speed Labels -->
-                        <text x="100" y="195" font-size="14" fill="white" text-anchor="middle">0</text>
-                        <text x="45" y="165" font-size="14" fill="white" text-anchor="middle">40</text>
-                        <text x="20" y="100" font-size="14" fill="white" text-anchor="middle">80</text>
-                        <text x="45" y="35" font-size="14" fill="white" text-anchor="middle">120</text>
-                        <text x="155" y="35" font-size="14" fill="white" text-anchor="middle">160</text>
-                        <text x="180" y="100" font-size="14" fill="white" text-anchor="middle">200</text>
-                        <text x="155" y="165" font-size="14" fill="white" text-anchor="middle">240</text>
-
-                        <!-- Needle -->
-                        <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="red" stroke-width="3"></line>
-
-                        <!-- Center Dot -->
-                        <circle cx="100" cy="100" r="5" fill="red"></circle>
-                    </svg>
-                `;
-                updateNeedle(speed);
-            } else {
-                // Digital Speedometer
-                speedometerDiv.innerHTML = `
-                    <div class="digital">
-                        <div class="speed">${speed}</div>
-                        <div class="unit">km/h</div>
-                    </div>
-                `;
-            }
-        }
-
-        function smoothTransition(newSpeed) {
-            const step = newSpeed > currentSpeed ? 1 : -1; // Determine direction
-            const interval = setInterval(() => {
-                if (currentSpeed === newSpeed) {
-                    clearInterval(interval);
-                } else {
-                    currentSpeed += step; // Increment or decrement speed
-                    updateNeedle(currentSpeed);
-                }
-            }, 20); // Update every 20ms for smooth animation
-        }
-
         function changeSpeed() {
-            const randomChange = Math.random() > 0.5 ? 20 : -20; // Randomly increase or decrease speed
+            const randomChange = Math.random() > 0.5 ? 10 : -10; // Small incremental change
             let newSpeed = currentSpeed + randomChange;
 
-            // Ensure new speed stays within limits
+            // Ensure speed stays within bounds
             newSpeed = Math.max(0, Math.min(240, newSpeed));
 
-            smoothTransition(newSpeed); // Apply smooth transition
+            currentSpeed = newSpeed;
+            updateSpeedDisplay();
             startTime = performance.now();
+        }
+
+        function updateSpeedDisplay() {
+            if (isAnalogMode) {
+                // Simulate analog mode as a string update
+                speedDisplay.textContent = `Analog Mode: ${currentSpeed} km/h`;
+            } else {
+                // Simulate digital mode
+                speedDisplay.textContent = `Digital Mode: ${currentSpeed} km/h`;
+            }
         }
 
         function startTest() {
@@ -191,15 +131,20 @@
             startButton.disabled = false;
         }
 
-        toggleButton.addEventListener("click", () => {
-            isDigital = !isDigital;
-            toggleButton.innerText = isDigital ? "Switch to Analog" : "Switch to Digital";
-            displaySpeed(0); // Reset speedometer
+        modeButton.addEventListener("click", () => {
+            isAnalogMode = !isAnalogMode;
+            modeButton.textContent = isAnalogMode ? "Switch to Digital" : "Switch to Analog";
+            updateSpeedDisplay();
         });
 
         startButton.addEventListener("click", () => {
             startButton.disabled = true;
             startTest();
+        });
+
+        reactionButton.addEventListener("click", () => {
+            if (!testRunning) return;
+            reactionTime = performance.now() - startTime;
         });
     </script>
 </body>
