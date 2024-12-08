@@ -6,7 +6,7 @@
 body {
     font-family: sans-serif;
     text-align: center;
-    background-color: #222; /* Dark background */
+    background-color: #222;
     color: #eee;
     margin: 20px;
 }
@@ -91,10 +91,11 @@ body {
     gauge.set(0);
 
     function changeSpeed() {
-        const newSpeed = Math.floor(Math.random() * 61) + 20; // 20-80 km/h
+        const newSpeed = Math.floor(Math.random() * 61) + 20; 
         currentSpeed = newSpeed;
         updateSpeedDisplay();
         startTime = performance.now();
+        document.addEventListener('keydown', recordReaction); // Attach listener after speed change
     }
 
     function updateSpeedDisplay() {
@@ -113,7 +114,7 @@ body {
         modeButton.disabled = true;
         resultsDiv.innerHTML = '';
         trials = 0;
-        resultsData.length = 0; // Clear previous data
+        resultsData.length = 0;
         nextTrial();
     }
 
@@ -122,13 +123,14 @@ body {
             endTest();
             return;
         }
-        isAnalogMode = Math.random() < 0.5; // Randomly switch between modes
+        isAnalogMode = Math.random() < 0.5;
         updateSpeedDisplay();
-        setTimeout(changeSpeed, Math.random() * 2000 + 1000); // Random delay
+        setTimeout(changeSpeed, Math.random() * 2000 + 1000);
         trials++;
     }
 
-    function recordReaction() {
+    function recordReaction(event) {
+        if (!testRunning || event.code !== 'Enter') return;
         reactionTime = (performance.now() - startTime) / 1000;
         resultsData.push({
             trial: trials,
@@ -136,6 +138,7 @@ body {
             reactionTime: reactionTime
         });
         resultsDiv.innerHTML += `Trial ${trials}: ${reactionTime.toFixed(3)} s<br>`;
+        document.removeEventListener('keydown', recordReaction);
         nextTrial();
     }
 
@@ -147,7 +150,6 @@ body {
         resultsDiv.innerHTML += `<p>Average Reaction Time: ${average.toFixed(2)} s</p>`;
         resultsDiv.innerHTML += `<p>All Results (Mode, Reaction Time):<br>${resultsData.map(t => `${t.mode}, ${t.reactionTime.toFixed(3)} s`).join('<br>')}</p>`;
         downloadButton.disabled = false;
-
     }
 
     function downloadLog() {
@@ -161,7 +163,6 @@ body {
         document.body.removeChild(link);
     }
 
-
     startButton.addEventListener('click', startTest);
     modeButton.addEventListener('click', () => {
         isAnalogMode = !isAnalogMode;
@@ -169,15 +170,6 @@ body {
         updateSpeedDisplay();
     });
     downloadButton.addEventListener('click', downloadLog);
-
-    // Event listener for reaction
-    document.addEventListener('keydown', function(event) {
-        if (testRunning && event.code === 'Enter') {
-            recordReaction();
-            document.removeEventListener('keydown', arguments.callee);
-        }
-    });
-
 </script>
 </body>
 </html>
