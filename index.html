@@ -19,6 +19,27 @@
             height: 300px;
             margin-top: 50px;
         }
+        .digital {
+            font-size: 48px;
+            font-weight: bold;
+            background-color: #1c1c1c;
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            width: 250px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .digital .speed {
+            font-size: 60px;
+            color: #00ffff;
+        }
+        .digital .unit {
+            font-size: 20px;
+            color: #ffffff;
+        }
         .reaction-button {
             padding: 10px 20px;
             font-size: 16px;
@@ -94,7 +115,13 @@
                 `;
                 updateNeedle(speed);
             } else {
-                speedometerDiv.innerHTML = `<div style="color: white;">Digital mode is under construction</div>`;
+                // Digital Speedometer
+                speedometerDiv.innerHTML = `
+                    <div class="digital">
+                        <div class="speed">${speed}</div>
+                        <div class="unit">km/h</div>
+                    </div>
+                `;
             }
         }
 
