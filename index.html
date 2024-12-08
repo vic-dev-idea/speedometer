@@ -72,7 +72,7 @@
     <div id="results"></div>
 
     <script>
-        const speeds = [0, 40, 80, 120, 160, 200, 240, 280, 320];
+        const speeds = [0, 40, 80, 120, 160, 200, 240, 280];
         let isDigital = false; // Toggle between analog and digital speedometer
         let testRunning = false;
         let startTime, reactionTime;
@@ -87,8 +87,8 @@
         // Function to update the needle for the analog speedometer
         function updateNeedle(speed) {
             const needle = document.getElementById("needle");
-            const maxSpeed = 320; // Maximum speed on the speedometer
-            const angle = (speed / maxSpeed) * 270 - 135; // Map speed to needle angle (-135° to 135°)
+            const maxSpeed = 280; // Maximum speed on the speedometer
+            const angle = (speed / maxSpeed) * 270 - 225; // Adjusted for "0" at 45° position
             const rad = (angle * Math.PI) / 180; // Convert angle to radians
             const x = 100 + 70 * Math.cos(rad); // Calculate x position for needle
             const y = 100 + 70 * Math.sin(rad); // Calculate y position for needle
@@ -103,16 +103,21 @@
                 speedometerDiv.innerHTML = `
                     <svg width="300" height="300" viewBox="0 0 200 200">
                         <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="4"></circle>
-                        <text x="100" y="195" font-size="12" fill="white" text-anchor="middle">0</text>
-                        <text x="155" y="175" font-size="12" fill="white" text-anchor="middle">40</text>
-                        <text x="190" y="130" font-size="12" fill="white" text-anchor="middle">80</text>
-                        <text x="175" y="70" font-size="12" fill="white" text-anchor="middle">120</text>
-                        <text x="130" y="30" font-size="12" fill="white" text-anchor="middle">160</text>
-                        <text x="70" y="30" font-size="12" fill="white" text-anchor="middle">200</text>
-                        <text x="25" y="70" font-size="12" fill="white" text-anchor="middle">240</text>
-                        <text x="10" y="130" font-size="12" fill="white" text-anchor="middle">280</text>
-                        <text x="45" y="175" font-size="12" fill="white" text-anchor="middle">320</text>
+
+                        <!-- Speed Labels -->
+                        <text x="45" y="175" font-size="12" fill="white" text-anchor="middle">0</text>
+                        <text x="25" y="120" font-size="12" fill="white" text-anchor="middle">40</text>
+                        <text x="45" y="70" font-size="12" fill="white" text-anchor="middle">80</text>
+                        <text x="100" y="45" font-size="12" fill="white" text-anchor="middle">120</text>
+                        <text x="155" y="70" font-size="12" fill="white" text-anchor="middle">160</text>
+                        <text x="175" y="120" font-size="12" fill="white" text-anchor="middle">200</text>
+                        <text x="155" y="175" font-size="12" fill="white" text-anchor="middle">240</text>
+                        <text x="100" y="200" font-size="12" fill="white" text-anchor="middle">280</text>
+
+                        <!-- Needle -->
                         <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="red" stroke-width="2"></line>
+
+                        <!-- Center Dot -->
                         <circle cx="100" cy="100" r="5" fill="red"></circle>
                     </svg>
                 `;
