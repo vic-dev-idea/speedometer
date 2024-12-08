@@ -58,7 +58,7 @@
 <body>
     <h1>Speedometer Reaction Test</h1>
     <p>Press the "React" button as quickly as you notice the speed change.</p>
-    <canvas id="gauge" width="400" height="400" style="display: block;"></canvas>
+    <canvas id="gauge" width="400" height="400" style="display: block; margin: 0 auto;"></canvas>
     <div class="speed-display" id="speedDisplay" style="display: none;">Speed: 0 km/h</div>
     <button class="reaction-button" id="reactionButton" disabled>React</button>
     <button class="start-button" id="startButton">Start Test</button>
@@ -84,7 +84,7 @@
 
         // Initialize Gauge.js
         const gauge = new Gauge(gaugeCanvas).setOptions({
-            angle: 0.5, // Full semicircle for classic speedometer
+            angle: 0.75, // Adjusted to match a classic analog arc
             lineWidth: 0.2, // Arc thickness
             radiusScale: 1, // Relative radius
             pointer: {
