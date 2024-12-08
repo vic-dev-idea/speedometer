@@ -68,7 +68,7 @@
     <div id="results"></div>
 
     <script>
-        const speeds = [0, 40, 80, 120, 160, 200, 240];
+        let currentSpeed = 0; // Track the current speed
         let isDigital = false; // Toggle between analog and digital speedometer
         let testRunning = false;
         let startTime, reactionTime;
@@ -125,9 +125,26 @@
             }
         }
 
+        function smoothTransition(newSpeed) {
+            const step = newSpeed > currentSpeed ? 1 : -1; // Determine direction
+            const interval = setInterval(() => {
+                if (currentSpeed === newSpeed) {
+                    clearInterval(interval);
+                } else {
+                    currentSpeed += step; // Increment or decrement speed
+                    updateNeedle(currentSpeed);
+                }
+            }, 20); // Update every 20ms for smooth animation
+        }
+
         function changeSpeed() {
-            const randomSpeed = speeds[Math.floor(Math.random() * speeds.length)];
-            displaySpeed(randomSpeed);
+            const randomChange = Math.random() > 0.5 ? 20 : -20; // Randomly increase or decrease speed
+            let newSpeed = currentSpeed + randomChange;
+
+            // Ensure new speed stays within limits
+            newSpeed = Math.max(0, Math.min(240, newSpeed));
+
+            smoothTransition(newSpeed); // Apply smooth transition
             startTime = performance.now();
         }
 
