@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speedometer Reaction Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .speedometer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            margin-top: 50px;
+        }
+        .circular, .digital {
+            font-size: 48px;
+            font-weight: bold;
+            border: 3px solid black;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+        }
+        .digital {
+            border-radius: 10px;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        #results {
+            margin-top: 30px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Speedometer Reaction Test</h1>
+    <p>Press the button as quickly as you notice the speed change.</p>
+    <div class="speedometer" id="speedometer"></div>
+    <button class="button" id="startButton">Start Test</button>
+    <div id="results"></div>
+
+    <script>
+        const speeds = [30, 40, 50, 60, 70, 80, 90, 100];
+        let mode = "circular"; // or "digital"
+        let startTime, reactionTime;
+        const results = [];
+
+        const speedometerDiv = document.getElementById("speedometer");
+        const startButton = document.getElementById("startButton");
+        const resultsDiv = document.getElementById("results");
+
+        function displaySpeed(speed) {
+            if (mode === "circular") {
+                speedometerDiv.innerHTML = `<div class="circular">${speed} km/h</div>`;
+            } else {
+                speedometerDiv.innerHTML = `<div class="digital">${speed} km/h</div>`;
+            }
+        }
+
+        function changeSpeed() {
+            const randomSpeed = speeds[Math.floor(Math.random() * speeds.length)];
+            displaySpeed(randomSpeed);
+            startTime = performance.now();
+        }
+
+        function startTest() {
+            resultsDiv.innerHTML = "";
+            results.length = 0;
+
+            let trial = 0;
+            function nextTrial() {
+                if (trial >= 5) {
+                    endTest();
+                    return;
+                }
+
+                setTimeout(() => {
+                    changeSpeed();
+                    trial++;
+                }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
+            }
+
+            document.addEventListener("keydown", recordReaction);
+            nextTrial();
+
+            function recordReaction() {
+                reactionTime = performance.now() - startTime;
+                results.push(reactionTime);
+                resultsDiv.innerHTML = `Reaction Time: ${reactionTime.toFixed(2)} ms<br>`;
+                document.removeEventListener("keydown", recordReaction);
+                nextTrial();
+            }
+        }
+
+        function endTest() {
+            const average = results.reduce((sum, val) => sum + val, 0) / results.length;
+            resultsDiv.innerHTML = `
+                <p>Test Complete!</p>
+                <p>Average Reaction Time: ${average.toFixed(2)} ms</p>
+                <p>Results: ${results.map(r => r.toFixed(2)).join(", ")} ms</p>
+            `;
+            startButton.disabled = false;
+        }
+
+        startButton.addEventListener("click", () => {
+            startButton.disabled = true;
+            startTest();
+        });
+    </script>
+</body>
+</html>
