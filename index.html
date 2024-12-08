@@ -42,6 +42,16 @@
             border-radius: 10px;
             cursor: pointer;
         }
+        .download-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
 </head>
@@ -53,6 +63,7 @@
     <button class="reaction-button" id="reactionButton" disabled>React</button>
     <button class="start-button" id="startButton">Start Test</button>
     <button class="mode-button" id="modeButton">Switch to Digital</button>
+    <button class="download-button" id="downloadButton" disabled>Download Log</button>
     <div id="results"></div>
 
     <script>
@@ -61,12 +72,14 @@
         let startTime, reactionTime;
         let isAnalogMode = true; // Track the current mode
         const results = [];
+        const logData = [];
 
         const speedDisplay = document.getElementById("speedDisplay");
         const gaugeCanvas = document.getElementById("gauge");
         const startButton = document.getElementById("startButton");
         const reactionButton = document.getElementById("reactionButton");
         const modeButton = document.getElementById("modeButton");
+        const downloadButton = document.getElementById("downloadButton");
         const resultsDiv = document.getElementById("results");
 
         // Initialize Gauge.js
@@ -111,6 +124,7 @@
 
             currentSpeed = newSpeed;
             console.log(`Speed updated to: ${currentSpeed}`); // Log speed for debugging
+            logData.push(`Speed updated to: ${currentSpeed} km/h`);
             updateSpeedDisplay();
             startTime = performance.now();
         }
@@ -121,6 +135,7 @@
                 gaugeCanvas.style.display = "block";
                 gauge.set(currentSpeed); // Ensure gauge updates
                 console.log(`Gauge set to: ${currentSpeed}`); // Log gauge updates for debugging
+                logData.push(`Gauge set to: ${currentSpeed} km/h`);
             } else {
                 gaugeCanvas.style.display = "none";
                 speedDisplay.style.display = "block";
@@ -152,6 +167,7 @@
                 if (!testRunning) return;
                 reactionTime = performance.now() - startTime;
                 results.push(reactionTime);
+                logData.push(`Reaction Time: ${reactionTime.toFixed(2)} ms`);
                 resultsDiv.innerHTML = `Last Reaction Time: ${reactionTime.toFixed(2)} ms<br>`;
                 nextTrial();
             }
@@ -168,7 +184,9 @@
                 <p>Average Reaction Time: ${average.toFixed(2)} ms</p>
                 <p>All Results: ${results.map(r => r.toFixed(2)).join(", ")} ms</p>
             `;
+            logData.push(`Test Complete. Average Reaction Time: ${average.toFixed(2)} ms`);
             startButton.disabled = false;
+            downloadButton.disabled = false;
         }
 
         modeButton.addEventListener("click", () => {
@@ -179,12 +197,23 @@
 
         startButton.addEventListener("click", () => {
             startButton.disabled = true;
+            downloadButton.disabled = true;
             startTest();
         });
 
         reactionButton.addEventListener("click", () => {
             if (!testRunning) return;
             reactionTime = performance.now() - startTime;
+        });
+
+        downloadButton.addEventListener("click", () => {
+            const blob = new Blob([logData.join("\n")], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "reaction_test_log.txt";
+            a.click();
+            URL.revokeObjectURL(url);
         });
 
         // Initialize display
