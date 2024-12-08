@@ -19,31 +19,6 @@
             height: 300px;
             margin-top: 50px;
         }
-        .digital {
-            font-size: 48px;
-            font-weight: bold;
-            background-color: #1c1c1c;
-            border: 2px solid #00ffff;
-            border-radius: 15px;
-            width: 250px;
-            height: 150px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .digital .speed {
-            font-size: 60px;
-            color: #00ffff;
-        }
-        .digital .unit {
-            font-size: 20px;
-            color: #ffffff;
-        }
-        #results {
-            margin-top: 30px;
-            font-size: 18px;
-        }
         .reaction-button {
             padding: 10px 20px;
             font-size: 16px;
@@ -84,11 +59,10 @@
         const toggleButton = document.getElementById("toggleButton");
         const resultsDiv = document.getElementById("results");
 
-        // Function to update the needle for the analog speedometer
         function updateNeedle(speed) {
             const needle = document.getElementById("needle");
             const maxSpeed = 280; // Maximum speed on the speedometer
-            const angle = (speed / maxSpeed) * 270 - 225; // Adjusted for "0" at 45° position
+            const angle = (speed / maxSpeed) * 270 - 225; // Adjusted for "0" at bottom-left
             const rad = (angle * Math.PI) / 180; // Convert angle to radians
             const x = 100 + 70 * Math.cos(rad); // Calculate x position for needle
             const y = 100 + 70 * Math.sin(rad); // Calculate y position for needle
@@ -96,22 +70,20 @@
             needle.setAttribute("y2", y);
         }
 
-        // Function to display the speedometer
         function displaySpeed(speed) {
             if (!isDigital) {
-                // Analog speedometer
                 speedometerDiv.innerHTML = `
                     <svg width="300" height="300" viewBox="0 0 200 200">
-                        <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="4"></circle>
+                        <circle cx="100" cy="100" r="85" fill="none" stroke="white" stroke-width="3"></circle>
 
                         <!-- Speed Labels -->
-                        <text x="45" y="175" font-size="12" fill="white" text-anchor="middle">0</text>
+                        <text x="50" y="180" font-size="12" fill="white" text-anchor="middle">0</text>
                         <text x="25" y="120" font-size="12" fill="white" text-anchor="middle">40</text>
-                        <text x="45" y="70" font-size="12" fill="white" text-anchor="middle">80</text>
+                        <text x="50" y="70" font-size="12" fill="white" text-anchor="middle">80</text>
                         <text x="100" y="45" font-size="12" fill="white" text-anchor="middle">120</text>
-                        <text x="155" y="70" font-size="12" fill="white" text-anchor="middle">160</text>
+                        <text x="150" y="70" font-size="12" fill="white" text-anchor="middle">160</text>
                         <text x="175" y="120" font-size="12" fill="white" text-anchor="middle">200</text>
-                        <text x="155" y="175" font-size="12" fill="white" text-anchor="middle">240</text>
+                        <text x="150" y="180" font-size="12" fill="white" text-anchor="middle">240</text>
                         <text x="100" y="200" font-size="12" fill="white" text-anchor="middle">280</text>
 
                         <!-- Needle -->
@@ -123,24 +95,16 @@
                 `;
                 updateNeedle(speed);
             } else {
-                // Digital speedometer
-                speedometerDiv.innerHTML = `
-                    <div class="digital">
-                        <div class="speed">${speed}</div>
-                        <div class="unit">km/h</div>
-                    </div>
-                `;
+                speedometerDiv.innerHTML = `<div style="color: white;">Digital mode is under construction</div>`;
             }
         }
 
-        // Change speed and measure reaction time
         function changeSpeed() {
             const randomSpeed = speeds[Math.floor(Math.random() * speeds.length)];
             displaySpeed(randomSpeed);
             startTime = performance.now();
         }
 
-        // Start the test
         function startTest() {
             resultsDiv.innerHTML = "";
             results.length = 0;
@@ -172,7 +136,6 @@
             nextTrial();
         }
 
-        // End the test
         function endTest() {
             testRunning = false;
             reactionButton.disabled = true;
@@ -185,7 +148,6 @@
             startButton.disabled = false;
         }
 
-        // Toggle speedometer type
         toggleButton.addEventListener("click", () => {
             isDigital = !isDigital;
             toggleButton.innerText = isDigital ? "Switch to Analog" : "Switch to Digital";
