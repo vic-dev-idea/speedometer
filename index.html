@@ -84,16 +84,16 @@
 
         // Initialize Gauge.js
         const gauge = new Gauge(gaugeCanvas).setOptions({
-            angle: 0.2, // The span of the gauge arc
-            lineWidth: 0.3, // Arc thickness
+            angle: 0.5, // Full semicircle for classic speedometer
+            lineWidth: 0.2, // Arc thickness
             radiusScale: 1, // Relative radius
             pointer: {
-                length: 0.6, // Relative to gauge radius
-                strokeWidth: 0.035, // Thickness
+                length: 0.7, // Relative to gauge radius
+                strokeWidth: 0.04, // Thickness
                 color: '#FF0000', // Pointer color
             },
             staticLabels: {
-                font: "12px Arial",
+                font: "14px Arial",
                 labels: [0, 40, 80, 120, 160, 200, 240],
                 fractionDigits: 0,
             },
