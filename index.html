@@ -110,6 +110,7 @@
             newSpeed = Math.max(0, Math.min(240, newSpeed));
 
             currentSpeed = newSpeed;
+            console.log(`Speed updated to: ${currentSpeed}`); // Log speed for debugging
             updateSpeedDisplay();
             startTime = performance.now();
         }
@@ -118,7 +119,8 @@
             if (isAnalogMode) {
                 speedDisplay.style.display = "none";
                 gaugeCanvas.style.display = "block";
-                gauge.set(currentSpeed);
+                gauge.set(currentSpeed); // Ensure gauge updates
+                console.log(`Gauge set to: ${currentSpeed}`); // Log gauge updates for debugging
             } else {
                 gaugeCanvas.style.display = "none";
                 speedDisplay.style.display = "block";
