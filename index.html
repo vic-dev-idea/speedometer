@@ -9,6 +9,8 @@
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 20px;
+            background-color: #000;
+            color: #fff;
         }
         .speedometer {
             display: flex;
@@ -20,85 +22,122 @@
         .digital {
             font-size: 48px;
             font-weight: bold;
-            border: 3px solid black;
-            border-radius: 10px;
-            width: 200px;
-            height: 100px;
+            background-color: #1c1c1c;
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            width: 250px;
+            height: 150px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: auto;
+            flex-direction: column;
         }
-        .button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-top: 20px;
+        .digital .speed {
+            font-size: 60px;
+            color: #00ffff;
+        }
+        .digital .unit {
+            font-size: 20px;
+            color: #ffffff;
         }
         #results {
             margin-top: 30px;
             font-size: 18px;
         }
+        .reaction-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .toggle-button {
+            margin: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #00ffff;
+            color: #000;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>Speedometer Reaction Test</h1>
-    <p>Press any key as quickly as you notice the speed change.</p>
+    <p>Press the "React" button as quickly as you notice the speed change.</p>
     <div class="speedometer" id="speedometer"></div>
-    <button class="button" id="startButton">Start Test</button>
+    <button class="reaction-button" id="reactionButton" disabled>React</button>
+    <button class="reaction-button" id="startButton">Start Test</button>
+    <button class="toggle-button" id="toggleButton">Switch to Digital</button>
     <div id="results"></div>
 
     <script>
-        const speeds = [0, 20, 40, 60, 80, 100]; // Speed values
-        let mode = "circular"; // "circular" or "digital"
+        const speeds = [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200];
+        let isDigital = false; // Toggle between old-style and modern digital speedometer
+        let testRunning = false;
         let startTime, reactionTime;
         const results = [];
-        let testRunning = false;
 
         const speedometerDiv = document.getElementById("speedometer");
         const startButton = document.getElementById("startButton");
+        const reactionButton = document.getElementById("reactionButton");
+        const toggleButton = document.getElementById("toggleButton");
         const resultsDiv = document.getElementById("results");
 
-        // Function to update the needle position for the circular speedometer
+        // Function to update the needle for the analog speedometer
         function updateNeedle(speed) {
             const needle = document.getElementById("needle");
-            const angle = (speed / 100) * 180; // Calculate angle based on speed
-            const rad = (angle - 90) * (Math.PI / 180); // Convert angle to radians
-            const x = 100 + 80 * Math.cos(rad); // Calculate x position
-            const y = 100 + 80 * Math.sin(rad); // Calculate y position
+            const maxSpeed = 200; // Maximum speed on the speedometer
+            const angle = (speed / maxSpeed) * 270 - 135; // Map speed to needle angle (-135° to 135°)
+            const rad = (angle * Math.PI) / 180; // Convert angle to radians
+            const x = 100 + 70 * Math.cos(rad); // Calculate x position for needle
+            const y = 100 + 70 * Math.sin(rad); // Calculate y position for needle
             needle.setAttribute("x2", x);
             needle.setAttribute("y2", y);
         }
 
-        // Function to display speedometer (circular or digital)
+        // Function to display speedometer
         function displaySpeed(speed) {
-            if (mode === "circular") {
+            if (!isDigital) {
+                // Old-style analog speedometer
                 speedometerDiv.innerHTML = `
-                    <svg width="200" height="200" viewBox="0 0 200 200">
-                        <circle cx="100" cy="100" r="90" fill="none" stroke="black" stroke-width="4"></circle>
-                        <text x="50" y="110" font-size="12">0</text>
-                        <text x="90" y="35" font-size="12">50</text>
-                        <text x="150" y="110" font-size="12">100</text>
-                        <line id="needle" x1="100" y1="100" x2="100" y2="20" stroke="red" stroke-width="2"></line>
+                    <svg width="300" height="300" viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="4"></circle>
+                        <text x="95" y="20" font-size="12" fill="white" text-anchor="middle">0</text>
+                        <text x="160" y="40" font-size="12" fill="white" text-anchor="middle">40</text>
+                        <text x="190" y="100" font-size="12" fill="white" text-anchor="middle">80</text>
+                        <text x="160" y="160" font-size="12" fill="white" text-anchor="middle">120</text>
+                        <text x="100" y="190" font-size="12" fill="white" text-anchor="middle">160</text>
+                        <text x="40" y="160" font-size="12" fill="white" text-anchor="middle">200</text>
+                        <line id="needle" x1="100" y1="100" x2="100" y2="30" stroke="red" stroke-width="2"></line>
+                        <circle cx="100" cy="100" r="5" fill="red"></circle>
                     </svg>
                 `;
                 updateNeedle(speed);
             } else {
-                speedometerDiv.innerHTML = `<div class="digital">${speed} km/h</div>`;
+                // Modern digital speedometer
+                speedometerDiv.innerHTML = `
+                    <div class="digital">
+                        <div class="speed">${speed}</div>
+                        <div class="unit">km/h</div>
+                    </div>
+                `;
             }
         }
 
-        // Change speed and start measuring reaction time
+        // Change speed and measure reaction time
         function changeSpeed() {
             const randomSpeed = speeds[Math.floor(Math.random() * speeds.length)];
             displaySpeed(randomSpeed);
             startTime = performance.now();
         }
 
-        // Start the test
+        // Start test
         function startTest() {
             resultsDiv.innerHTML = "";
             results.length = 0;
             testRunning = true;
+            reactionButton.disabled = false;
             let trial = 0;
 
             function nextTrial() {
@@ -110,7 +149,7 @@
                 setTimeout(() => {
                     changeSpeed();
                     trial++;
-                    document.addEventListener("keydown", recordReaction, { once: true });
+                    reactionButton.addEventListener("click", recordReaction, { once: true });
                 }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
             }
 
@@ -125,9 +164,10 @@
             nextTrial();
         }
 
-        // End the test and calculate results
+        // End test
         function endTest() {
             testRunning = false;
+            reactionButton.disabled = true;
             const average = results.reduce((sum, val) => sum + val, 0) / results.length;
             resultsDiv.innerHTML = `
                 <p>Test Complete!</p>
@@ -136,6 +176,13 @@
             `;
             startButton.disabled = false;
         }
+
+        // Toggle speedometer type
+        toggleButton.addEventListener("click", () => {
+            isDigital = !isDigital;
+            toggleButton.innerText = isDigital ? "Switch to Analog" : "Switch to Digital";
+            displaySpeed(0); // Reset speedometer
+        });
 
         startButton.addEventListener("click", () => {
             startButton.disabled = true;
