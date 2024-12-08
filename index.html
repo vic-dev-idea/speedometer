@@ -12,45 +12,41 @@
             background-color: #000;
             color: #fff;
         }
-        .reaction-button {
+        .reaction-button, .start-button, .mode-button, .download-button {
             padding: 10px 20px;
             font-size: 16px;
-            margin-top: 20px;
+            margin-top: 10px;
             cursor: pointer;
+            border-radius: 5px;
+            border: none;
         }
         .start-button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-top: 20px;
             background-color: #00ffff;
             color: #000;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
+        }
+        .mode-button {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .download-button {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .reaction-button {
+            background-color: #dc3545; /* Red */
+            color: white;
+        }
+        .reaction-button:disabled {
+            background-color: #6c757d; /* Grayed out red */
+            cursor: default;
         }
         .speed-display {
             font-size: 24px;
             margin: 20px 0;
         }
-        .mode-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .download-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
+        #gauge {
+            margin: 20px auto;
+            display: block;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
@@ -58,7 +54,7 @@
 <body>
     <h1>Speedometer Reaction Test</h1>
     <p>Press the "React" button as quickly as you notice the speed change.</p>
-    <canvas id="gauge" width="400" height="400" style="display: block; margin: 0 auto;"></canvas>
+    <canvas id="gauge" width="400" height="400"></canvas>
     <div class="speed-display" id="speedDisplay" style="display: none;">Speed: 0 km/h</div>
     <button class="reaction-button" id="reactionButton" disabled>React</button>
     <button class="start-button" id="startButton">Start Test</button>
@@ -70,7 +66,7 @@
         let currentSpeed = 0;
         let testRunning = false;
         let startTime, reactionTime;
-        let isAnalogMode = true; // Track the current mode
+        let isAnalogMode = true;
         const results = [];
         const logData = [];
 
@@ -82,15 +78,14 @@
         const downloadButton = document.getElementById("downloadButton");
         const resultsDiv = document.getElementById("results");
 
-        // Initialize Gauge.js
         const gauge = new Gauge(gaugeCanvas).setOptions({
-            angle: 0.75, // Adjusted to match a classic analog arc
-            lineWidth: 0.2, // Arc thickness
-            radiusScale: 1, // Relative radius
+            angle: 0.75,
+            lineWidth: 0.2,
+            radiusScale: 1,
             pointer: {
-                length: 0.7, // Relative to gauge radius
-                strokeWidth: 0.04, // Thickness
-                color: '#FF0000', // Pointer color
+                length: 0.7,
+                strokeWidth: 0.04,
+                color: '#FF0000',
             },
             staticLabels: {
                 font: "14px Arial",
@@ -102,29 +97,22 @@
                 { strokeStyle: "#FFDD00", min: 80, max: 160 },
                 { strokeStyle: "#F03E3E", min: 160, max: 240 },
             ],
-            limitMax: false,     // If false, max value increases automatically if value > maxValue
-            limitMin: false,     // If true, the min value of the gauge will be fixed
-            colorStart: '#6FADCF',   // Colors
-            colorStop: '#8FC0DA',    // just experiment with them
-            strokeColor: '#E0E0E0',  // to see which ones work best for you
+            limitMax: false,
+            limitMin: false,
+            colorStart: '#6FADCF',
+            colorStop: '#8FC0DA',
+            strokeColor: '#E0E0E0',
             generateGradient: true,
-            highDpiSupport: true,     // High resolution support
+            highDpiSupport: true,
         });
-        gauge.maxValue = 240; // Set max gauge value
-        gauge.setMinValue(0);  // Prefer setter over gauge.minValue = 0
-        gauge.animationSpeed = 50; // Adjusted for smoother updates
-        gauge.set(0); // Set initial value
+        gauge.maxValue = 240;
+        gauge.setMinValue(0);
+        gauge.animationSpeed = 50;
+        gauge.set(0);
 
         function changeSpeed() {
-            const randomChange = Math.random() > 0.5 ? 10 : -10; // Small incremental change
-            let newSpeed = currentSpeed + randomChange;
-
-            // Ensure speed stays within bounds
-            newSpeed = Math.max(0, Math.min(240, newSpeed));
-
+            const newSpeed = Math.floor(Math.random() * 61) + 20; // Random speed 20-80
             currentSpeed = newSpeed;
-            console.log(`Speed updated to: ${currentSpeed}`); // Log speed for debugging
-            logData.push(`Speed updated to: ${currentSpeed} km/h`);
             updateSpeedDisplay();
             startTime = performance.now();
         }
@@ -133,9 +121,7 @@
             if (isAnalogMode) {
                 speedDisplay.style.display = "none";
                 gaugeCanvas.style.display = "block";
-                gauge.set(currentSpeed); // Ensure gauge updates
-                console.log(`Gauge set to: ${currentSpeed}`); // Log gauge updates for debugging
-                logData.push(`Gauge set to: ${currentSpeed} km/h`);
+                gauge.set(currentSpeed);
             } else {
                 gaugeCanvas.style.display = "none";
                 speedDisplay.style.display = "block";
@@ -148,6 +134,7 @@
             results.length = 0;
             testRunning = true;
             reactionButton.disabled = false;
+            modeButton.disabled = true; //Disable mode switch during test
             let trial = 0;
 
             function nextTrial() {
@@ -156,19 +143,21 @@
                     return;
                 }
 
+                isAnalogMode = Math.random() < 0.5; // Randomly choose analog or digital
+                updateSpeedDisplay();
                 setTimeout(() => {
                     changeSpeed();
                     trial++;
                     reactionButton.addEventListener("click", recordReaction, { once: true });
-                }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
+                }, Math.random() * 2000 + 1000);
             }
 
             function recordReaction() {
                 if (!testRunning) return;
-                reactionTime = performance.now() - startTime;
+                reactionTime = (performance.now() - startTime) / 1000; // Seconds
                 results.push(reactionTime);
-                logData.push(`Reaction Time: ${reactionTime.toFixed(2)} ms`);
-                resultsDiv.innerHTML = `Last Reaction Time: ${reactionTime.toFixed(2)} ms<br>`;
+                logData.push(`Trial ${trial}, Mode: ${isAnalogMode ? 'Analog' : 'Digital'}, Reaction Time: ${reactionTime.toFixed(3)} s`);
+                resultsDiv.innerHTML += `Trial ${trial}: ${reactionTime.toFixed(3)} s<br>`;
                 nextTrial();
             }
 
@@ -178,13 +167,14 @@
         function endTest() {
             testRunning = false;
             reactionButton.disabled = true;
+            modeButton.disabled = false; // Re-enable mode switch after test
             const average = results.reduce((sum, val) => sum + val, 0) / results.length;
-            resultsDiv.innerHTML = `
+            resultsDiv.innerHTML += `
                 <p>Test Complete!</p>
-                <p>Average Reaction Time: ${average.toFixed(2)} ms</p>
-                <p>All Results: ${results.map(r => r.toFixed(2)).join(", ")} ms</p>
+                <p>Average Reaction Time: ${average.toFixed(2)} s</p>
+                <p>All Results: ${results.map(r => r.toFixed(2)).join(", ")} s</p>
             `;
-            logData.push(`Test Complete. Average Reaction Time: ${average.toFixed(2)} ms`);
+            logData.push(`Test Complete. Average Reaction Time: ${average.toFixed(2)} s`);
             startButton.disabled = false;
             downloadButton.disabled = false;
         }
@@ -201,11 +191,6 @@
             startTest();
         });
 
-        reactionButton.addEventListener("click", () => {
-            if (!testRunning) return;
-            reactionTime = performance.now() - startTime;
-        });
-
         downloadButton.addEventListener("click", () => {
             const blob = new Blob([logData.join("\n")], { type: "text/plain" });
             const url = URL.createObjectURL(blob);
@@ -216,7 +201,6 @@
             URL.revokeObjectURL(url);
         });
 
-        // Initialize display
         updateSpeedDisplay();
     </script>
 </body>
